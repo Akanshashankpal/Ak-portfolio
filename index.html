@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#090909" />
+  <meta name="description" content="Aarav Sharma — Frontend Developer. I build digital experiences. Premium interfaces, precise engineering." />
+  <title>Aarav Sharma — Frontend Developer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#090909",
+            panel: "#111111",
+            raised: "#171717",
+            blush: "#E8B4B8",
+            "blush-deep": "#C98B91",
+            mist: "#9A9A9A",
+            bone: "#F4F1EE"
+          },
+          fontFamily: {
+            display: ["Syne", "sans-serif"],
+            sans: ["Manrope", "sans-serif"]
+          },
+          boxShadow: {
+            glow: "0 0 120px 20px rgba(232,180,184,0.18)"
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      --ink: #090909;
+      --blush: #E8B4B8;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--ink);
+      color: #F4F1EE;
+      font-family: "Manrope", sans-serif;
+      overflow-x: hidden;
+    }
+    ::selection {
+      background: #E8B4B8;
+      color: #090909;
+    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #090909; }
+    ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: #E8B4B8; }
+
+    body::before {
+      content: "";
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .grid-fade {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px);
+      background-size: 72px 72px;
+      mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    }
+
+    .portrait-grade {
+      filter: grayscale(18%) contrast(1.06) saturate(0.88);
+    }
+
+    .text-outline {
+      -webkit-text-stroke: 1px rgba(244,241,238,0.18);
+      color: transparent;
+    }
+
+    .shine {
+      position: relative;
+      overflow: hidden;
+    }
+    .shine::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.28) 50%, transparent 70%);
+      transform: translateX(-120%);
+      transition: transform 0.7s ease;
+    }
+    .shine:hover::after { transform: translateX(120%); }
+
+    .nav-link {
+      position: relative;
+    }
+    .nav-link::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -3px;
+      width: 0;
+      height: 1px;
+      background: #E8B4B8;
+      transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .nav-link:hover::after { width: 100%; }
+
+    input, textarea {
+      outline: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/framer-motion@10.18.0/dist/framer-motion.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel" data-presets="react">
+    const { useState, useEffect, useRef } = React;
+    const MotionNS = window.Motion || {};
+    const motion = MotionNS.motion || new Proxy({}, {
+      get: (_, el) => (props) => {
+        const { children, className, style, onClick, href, target, rel, type, id } = props || {};
+        return React.createElement(el, { className, style, onClick, href, target, rel, type, id }, children);
+      }
+    });
+    const AnimatePresence = MotionNS.AnimatePresence || (({ children }) => <>{children}</>);
+    const useInView = MotionNS.useInView || ((ref) => {
+      const [v, setV] = useState(false);
+      useEffect(() => {
+        if (!ref.current) return;
+        const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) setV(true); }, { threshold: 0.12, rootMargin: "-60px" });
+        io.observe(ref.current);
+        return () => io.disconnect();
+      }, []);
+      return v;
+    });
+
+    const PORTRAIT = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=1200&q=85";
+
+    const NAV = [
+      { label: "About", href: "#about" },
+      { label: "Work", href: "#work" },
+      { label: "Experience", href: "#experience" },
+      { label: "Services", href: "#services" },
+      { label: "Contact", href: "#contact" }
+    ];
+
+    const SKILLS = [
+      { group: "Languages", items: ["JavaScript", "TypeScript", "HTML5", "CSS3"] },
+      { group: "Frameworks", items: ["React", "Next.js", "Vite", "Redux"] },
+      { group: "Interface", items: ["Tailwind CSS", "Framer Motion", "Responsive UI", "Design Systems"] },
+      { group: "Practice", items: ["Git", "Figma", "REST APIs", "Accessibility", "Performance"] }
+    ];
+
+    const PROJECTS = [
+      {
+        name: "SmartBurhanpur",
+        tag: "Civic Platform",
+        year: "2024",
+        description: "A digital city platform for Burhanpur — tourism, civic services, local discovery and community information in one refined, mobile-first experience.",
+        image: "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1600&q=80",
+        tech: ["React", "Tailwind CSS", "Maps API", "Framer Motion"],
+        live: "https://smartburhanpur.vercel.app",
+        github: "https://github.com/aaravsharma/smartburhanpur"
+      },
+      {
+        name: "ShiftTpe",
+        tag: "Workforce Product",
+        year: "2024",
+        description: "Shift scheduling and time-tracking for growing teams. Real-time rostering, role-based access and a calm operational interface built for daily use.",
+        image: "https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=1600&q=80",
+        tech: ["React", "TypeScript", "Vite", "REST APIs"],
+        live: "https://shifttpe.vercel.app",
+        github: "https://github.com/aaravsharma/shifttpe"
+      },
+      {
+        name: "Billing Management",
+        tag: "SaaS Dashboard",
+        year: "2023",
+        description: "End-to-end invoicing and billing — GST-ready documents, analytics, client records and PDF generation inside a precise, high-clarity dashboard.",
+        image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1600&q=80",
+        tech: ["React", "Tailwind CSS", "Recharts", "JavaScript"],
+        live: "https://billing-mgmt.vercel.app",
+        github: "https://github.com/aaravsharma/billing-management"
+      }
+    ];
+
+    const EXPERIENCE = [
+      {
+        role: "Senior Frontend Developer",
+        company: "Nimbus Labs",
+        period: "2023 — Present",
+        detail: "Lead interface architecture for SaaS products. Own design-system implementation, performance budgets and motion language across web surfaces."
+      },
+      {
+        role: "Frontend Developer",
+        company: "PixelForge Studio",
+        period: "2021 — 2023",
+        detail: "Shipped marketing sites and product UIs for startups. Translated high-fidelity design into accessible, production-grade React applications."
+      },
+      {
+        role: "UI Engineer — Freelance",
+        company: "Independent",
+        period: "2019 — 2021",
+        detail: "Delivered custom websites, dashboards and landing experiences for founders — from concept through launch and iteration."
+      }
+    ];
+
+    const SERVICES = [
+      {
+        n: "01",
+        title: "Frontend Engineering",
+        text: "Production React applications with clean architecture, reusable components and code that stays maintainable as products grow."
+      },
+      {
+        n: "02",
+        title: "Interface Implementation",
+        text: "Pixel-true translation of design into the browser — typography, spacing, states and responsive behavior treated with equal care."
+      },
+      {
+        n: "03",
+        title: "Motion & Interaction",
+        text: "Purposeful animation with Framer Motion. Micro-interactions that guide, never decorate for decoration’s sake."
+      },
+      {
+        n: "04",
+        title: "Performance & A11y",
+        text: "Fast first paint, thoughtful loading, semantic markup and keyboard-first flows. Experiences that feel effortless for everyone."
+      }
+    ];
+
+    const SOCIALS = [
+      { label: "GitHub", href: "https://github.com" },
+      { label: "LinkedIn", href: "https://linkedin.com" },
+      { label: "X", href: "https://x.com" },
+      { label: "Email", href: "mailto:hello@aaravsharma.dev" }
+    ];
+
+    function scrollToId(id) {
+      const el = document.querySelector(id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function FadeIn({ children, delay = 0, className = "", y = 36 }) {
+      const ref = useRef(null);
+      const inView = useInView(ref, { once: true, margin: "-70px" });
+      return (
+        <motion.div
+          ref={ref}
+          className={className}
+          initial={{ opacity: 0, y }}
+          animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y }}
+          transition={{ duration: 0.85, delay, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {children}
+        </motion.div>
+      );
+    }
+
+    function SectionLabel({ index, title }) {
+      return (
+        <div className="flex items-center gap-4 mb-6">
+          <span className="text-blush font-display text-sm tracking-[0.22em]">{index}</span>
+          <span className="h-px w-10 bg-blush/50" />
+          <span className="text-[11px] uppercase tracking-[0.24em] text-mist">{title}</span>
+        </div>
+      );
+    }
+
+    function IconExternal() {
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M7 17L17 7M9 7h8v8" />
+        </svg>
+      );
+    }
+    function IconGitHub() {
+      return (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 .5C5.73.5.5 5.73.5 12.02c0 5.1 3.29 9.43 7.86 10.96.58.1.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.64 1.58.24 2.75.12 3.04.74.81 1.18 1.84 1.18 3.1 0 4.43-2.69 5.4-5.25 5.69.41.36.78 1.07.78 2.17 0 1.56-.01 2.82-.01 3.2 0 .31.21.67.8.56A10.52 10.52 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z"/>
+        </svg>
+      );
+    }
+
+    function Loader() {
+      return (
+        <motion.div
+          className="fixed inset-0 z-[100] bg-ink flex items-center justify-center"
+          initial={{ y: 0 }}
+          exit={{ y: "-100%", transition: { duration: 0.95, ease: [0.76, 0, 0.24, 1] } }}
+        >
+          <div className="text-center px-6">
+            <motion.p
+              className="font-display text-bone tracking-[0.32em] text-xs uppercase mb-5"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              Frontend Developer
+            </motion.p>
+            <motion.h2
+              className="font-display text-3xl sm:text-4xl text-bone tracking-wide"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.15 }}
+            >
+              AARAV SHARMA
+            </motion.h2>
+            <motion.div
+              className="h-px bg-blush mx-auto mt-6"
+              initial={{ width: 0 }}
+              animate={{ width: 112 }}
+              transition={{ duration: 0.9, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            />
+          </div>
+        </motion.div>
+      );
+    }
+
+    function ScrollProgress() {
+      const [p, setP] = useState(0);
+      useEffect(() => {
+        const onScroll = () => {
+          const h = document.documentElement.scrollHeight - window.innerHeight;
+          setP(h > 0 ? window.scrollY / h : 0);
+        };
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
+      }, []);
+      return (
+        <div className="fixed top-0 left-0 right-0 h-[2px] z-[70]">
+          <div className="h-full bg-blush origin-left" style={{ transform: `scaleX(${p})`, transformOrigin: "left center" }} />
+        </div>
+      );
+    }
+
+    function Navbar() {
+      const [open, setOpen] = useState(false);
+      const [scrolled, setScrolled] = useState(false);
+
+      useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 24);
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
+      }, []);
+
+      useEffect(() => {
+        document.body.style.overflow = open ? "hidden" : "";
+        const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+        window.addEventListener("keydown", onKey);
+        return () => {
+          document.body.style.overflow = "";
+          window.removeEventListener("keydown", onKey);
+        };
+      }, [open]);
+
+      const go = (href) => {
+        setOpen(false);
+        setTimeout(() => scrollToId(href), 80);
+      };
+
+      return (
+        <>
+          <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? "bg-ink/75 backdrop-blur-xl border-b border-white/[0.06]" : "bg-transparent"}`}>
+            <div className="max-w-[1400px] mx-auto px-5 sm:px-8 lg:px-12 h-[72px] flex items-center justify-between">
+              <a href="#top" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="font-display text-[17px] tracking-wide text-bone">
+                aarav<span className="text-blush">.</span>
+              </a>
+              <nav className="hidden md:flex items-center gap-8">
+                {NAV.map((l) => (
+                  <a key={l.href} href={l.href} onClick={(e) => { e.preventDefault(); go(l.href); }} className="nav-link text-[13px] text-bone/80 hover:text-bone transition-colors tracking-wide">
+                    {l.label}
+                  </a>
+                ))}
+              </nav>
+              <motion.a
+                href="#contact"
+                onClick={(e) => { e.preventDefault(); go("#contact"); }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="hidden md:inline-flex shine items-center px-4 py-2 rounded-full border border-blush/40 text-[12px] tracking-[0.14em] uppercase text-blush hover:bg-blush hover:text-ink transition-colors"
+              >
+                Let’s Talk
+              </motion.a>
+              <button
+                aria-label="Toggle menu"
+                className="md:hidden w-10 h-10 flex flex-col items-center justify-center gap-[5px]"
+                onClick={() => setOpen((v) => !v)}
+              >
+                <span className={`block h-px w-6 bg-bone transition-transform duration-300 ${open ? "translate-y-[6px] rotate-45" : ""}`} />
+                <span className={`block h-px w-6 bg-bone transition-opacity duration-300 ${open ? "opacity-0" : ""}`} />
+                <span className={`block h-px w-6 bg-bone transition-transform duration-300 ${open ? "-translate-y-[6px] -rotate-45" : ""}`} />
+              </button>
+            </div>
+          </header>
+
+          <AnimatePresence>
+            {open && (
+              <motion.div
+                className="fixed inset-0 z-40 bg-ink/97 backdrop-blur-xl md:hidden flex flex-col justify-center px-8"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <div className="flex flex-col gap-6">
+                  {NAV.map((l, i) => (
+                    <motion.a
+                      key={l.href}
+                      href={l.href}
+                      onClick={(e) => { e.preventDefault(); go(l.href); }}
+                      initial={{ opacity: 0, x: -16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.06 * i }}
+                      className="font-display text-4xl text-bone"
+                    >
+                      {l.label}
+                    </motion.a>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      );
+    }
+
+    function Hero({ ready }) {
+      const [py, setPy] = useState(0);
+      useEffect(() => {
+        const onScroll = () => setPy(window.scrollY * 0.18);
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
+      }, []);
+
+      return (
+        <section id="top" className="relative min-h-[100svh] flex items-center pt-24 pb-16 overflow-hidden">
+          <div className="absolute inset-0 grid-fade pointer-events-none" />
+          <div className="absolute -top-32 right-[8%] w-[420px] h-[420px] rounded-full bg-blush/10 blur-[110px] pointer-events-none" />
+
+          <div className="relative max-w-[1400px] mx-auto px-5 sm:px-8 lg:px-12 w-full">
+            <div className="grid lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+              <div className="lg:col-span-7 order-2 lg:order-1">
+                <motion.div
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={ready ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.7, delay: 0.15 }}
+                  className="inline-flex items-center gap-2 mb-6 border border-white/10 rounded-full px-3 py-1.5"
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blush opacity-70" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blush" />
+                  </span>
+                  <span className="text-[11px] uppercase tracking-[0.2em] text-mist">Available for freelance</span>
+                </motion.div>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={ready ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.7, delay: 0.25 }}
+                  className="text-[12px] uppercase tracking-[0.28em] text-blush mb-4"
+                >
+                  Frontend Developer
+                </motion.p>
+
+                <motion.h1
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={ready ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.95, delay: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                  className="font-display font-extrabold leading-[0.92] tracking-[-0.03em] text-bone text-[clamp(2.35rem,7.4vw,6.4rem)]"
+                >
+                  I BUILD<br />
+                  DIGITAL<br />
+                  EXPERIENCES<span className="text-blush">.</span>
+                </motion.h1>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={ready ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.8, delay: 0.5 }}
+                  className="mt-7 max-w-xl text-[15px] sm:text-base leading-relaxed text-mist"
+                >
+                  I design and engineer refined web interfaces — where thoughtful typography, precise motion and performant React meet to create products that feel effortless.
+                </motion.p>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={ready ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.8, delay: 0.62 }}
+                  className="mt-9 flex flex-wrap items-center gap-3"
+                >
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => scrollToId("#work")}
+                    className="shine px-6 py-3.5 rounded-full bg-blush text-ink text-[13px] font-semibold tracking-wide hover:bg-bone transition-colors"
+                  >
+                    View My Work
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => scrollToId("#contact")}
+                    className="px-6 py-3.5 rounded-full border border-white/15 text-[13px] font-medium tracking-wide text-bone hover:border-blush hover:text-blush transition-colors"
+                  >
+                    Let’s Connect
+                  </motion.button>
+                </motion.div>
+              </div>
+
+              <div className="lg:col-span-5 order-1 lg:order-2 flex justify-center lg:justify-end">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.94, y: 24 }}
+                  animate={ready ? { opacity: 1, scale: 1, y: 0 } : {}}
+                  transition={{ duration: 1.05, delay: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                  className="relative w-[min(86vw,420px)] lg:w-full max-w-[440px]"
+                >
+                  <div className="absolute -inset-10 bg-blush/25 blur-[90px] rounded-full pointer-events-none" />
+                  <div className="absolute -bottom-3 -right-3 sm:-bottom-4 sm:-right-4 inset-auto w-full h-full border border-blush/35 rounded-[28px] pointer-events-none" />
+                  <div className="relative overflow-hidden rounded-[28px] aspect-[4/5] shadow-glow">
+                    <img
+                      src={PORTRAIT}
+                      alt="Aarav Sharma — professional portrait"
+                      className="portrait-grade w-full h-full object-cover object-[center_18%]"
+                      style={{ transform: `translateY(${py}px) scale(1.08)`, transformOrigin: "center top" }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-blush/10 pointer-events-none" />
+                  </div>
+                  <div className="absolute -left-3 bottom-10 hidden sm:block bg-panel/90 backdrop-blur border border-white/10 rounded-2xl px-4 py-3">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-mist">Based in</p>
+                    <p className="font-display text-sm text-bone mt-0.5">India · Remote</p>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function About() {
+      const stats = [
+        { k: "04+", v: "Years Experience" },
+        { k: "30+", v: "Projects Shipped" },
+        { k: "15+", v: "Clients Worldwide" }
+      ];
+      return (
+        <section id="about" className="relative py-24 md:py-32 border-t border-white/[0.06]">
+          <div className="max-w-[1400px] mx-auto px-5 sm:px-8 lg:px-12">
+            <div className="grid lg:grid-cols-12 gap-12 lg:gap-16">
+              <div className="lg:col-span-5">
+                <FadeIn>
+                  <SectionLabel index="01" title="About me" />
+                  <h2 className="font-display font-bold text-[clamp(2rem,4.4vw,3.4rem)] leading-[1.05] tracking-tight">
+                    Clarity over decoration. Motion with purpose.
+                  </h2>
+                </FadeIn>
+              </div>
+              <div className="lg:col-span-7">
+                <FadeIn delay={0.1}>
+                  <p className="text-mist text-[15.5px] sm:text-[17px] leading-[1.75]">
+                    I’m a frontend developer who treats every interface as a product — not just a page. I care about the space between pixels, the speed of a transition, and the clarity of a layout. Over the last few years I’ve helped teams ship web experiences that feel calm, considered and unmistakably modern.
+                  </p>
+                  <p className="text-mist text-[15.5px] sm:text-[17px] leading-[1.75] mt-5">
+                    My process is collaborative and detail-obsessed: from the first component to the last millisecond of animation, I build with intention — in React, TypeScript and Tailwind — so the work holds up in production, not just in a mockup.
+                  </p>
+                </FadeIn>
+                <div className="grid grid-cols-3 gap-4 mt-10">
+                  {stats.map((s, i) => (
+                    <FadeIn key={s.v} delay={0.12 + i * 0.08}>
+                      <div className="border border-white/[0.08] rounded-2xl px-3 py-5 sm:px-5 bg-panel/60">
+                        <p className="font-display text-[clamp(1.6rem,3vw,2.4rem)] text-blush leading-none">{s.k}</p>
+                        <p className="text-[11px] sm:text-xs text-mist mt-2 leading-snug">{s.v}</p>
+                      </div>
+                    </FadeIn>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function Skills() {
+      return (
+        <section id="skills" className="relative py-24 md:py-32 bg-panel border-y border-white/[0.06]">
+          <div className="max-w-[1400px] mx-auto px-5 sm:px-8 lg:px-12">
+            <FadeIn>
+              <SectionLabel index="02" title="Capabilities" />
+              <h2 className="font-display font-bold text-[clamp(2rem,4.4vw,3.4rem)] leading-[1.05] max-w-2xl">
+                Skills & Technologies
+              </h2>
+              <p className="text-mist mt-4 max-w-xl text-[15px] leading-relaxed">
+                A focused stack for building interfaces that are fast, accessible and visually precise.
+              </p>
+            </FadeIn>
+            <div className="mt-12 grid md:grid-cols-2 gap-8">
+              {SKILLS.map((g, i) => (
+                <FadeIn key={g.group} delay={i * 0.08}>
+                  <div className="border border-white/[0.07] rounded-2xl p-6 bg-ink/40">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-blush mb-4">{g.group}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {g.items.map((item) => (
+                        <span
+                          key={item}
+                          className="text-[13px] px-3.5 py-1.5 rounded-full border border-white/10 text-bone/90 hover:border-blush/60 hover:text-blush hover:bg-blush/[0.06] transition-colors"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </FadeIn>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function Projects() {
+      return (
+        <section id="work" className="relative py-24 md:py-32">
+          <div className="max-w-[1400px] mx-auto px-5 sm:px-8 lg:px-12">
+            <FadeIn>
+              <SectionLabel index="03" title="Selected work" />
+              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-14">
+                <h2 className="font-display font-bold text-[clamp(2rem,4.4vw,3.4rem)] leading-[1.05]">
+                  Selected Projects
+                </h2>
+                <p className="text-mist text-sm max-w-sm">A short list of products I’ve designed and engineered end-to-end.</p>
+              </div>
+            </FadeIn>
+
+            <div className="flex flex-col gap-20 md:gap-28">
+              {PROJECTS.map((p, i) => {
+                const reverse = i % 2 === 1;
+                return (
+                  <FadeIn key={p.name} delay={0.05}>
+                    <article className={`grid lg:grid-cols-12 gap-8 lg:gap-12 items-center`}>
+                      <motion.div
+                        whileHover={{ y: -6 }}
+                        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                        className={`lg:col-span-7 ${reverse ? "lg:order-2" : ""}`}
+                      >
+                        <div className="group relative overflow-hidden rounded-[24px] border border-white/[0.07] bg-raised aspect-[16/10]">
+                          <img
+                            src={p.image}
+                            alt={p.name}
+                            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-ink/50 via-transparent to-transparent opacity-80" />
+                          <div className="absolute top-4 left-4 flex gap-2">
+                            <span className="text-[10px] uppercase tracking-[0.18em] bg-ink/70 backdrop-blur px-2.5 py-1 rounded-full text-blush border border-blush/20">{p.tag}</span>
+                            <span className="text-[10px] uppercase tracking-[0.18em] bg-ink/70 backdrop-blur px-2.5 py-1 rounded-full text-bone/80 border border-white/10">{p.year}</span>
+                          </div>
+                        </div>
+                      </motion.div>
+                      <div className={`lg:col-span-5 ${reverse ? "lg:order-1" : ""}`}>
+                        <p className="text-blush font-display text-sm mb-2">0{i + 1}</p>
+                        <h3 className="font-display font-bold text-[clamp(1.7rem,3vw,2.4rem)] tracking-tight">{p.name}</h3>
+                        <p className="text-mist mt-4 leading-relaxed text-[15px]">{p.description}</p>
+                        <div className="flex flex-wrap gap-2 mt-5">
+                          {p.tech.map((t) => (
+                            <span key={t} className="text-[11px] tracking-wide px-2.5 py-1 rounded-md border border-white/10 text-bone/75">{t}</span>
+                          ))}
+                        </div>
+                        <div className="flex flex-wrap gap-3 mt-7">
+                          <motion.a
+                            href={p.live}
+                            target="_blank"
+                            rel="noreferrer"
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-blush text-ink text-[12px] font-semibold"
+                          >
+                            Live Demo <IconExternal />
+                          </motion.a>
+                          <motion.a
+                            href={p.github}
+                            target="_blank"
+                            rel="noreferrer"
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-white/15 text-[12px] font-medium hover:border-blush hover:text-blush transition-colors"
+                          >
+                            <IconGitHub /> GitHub
+                          </motion.a>
+                        </div>
+                      </div>
+                    </article>
+                  </FadeIn>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function Experience() {
+      return (
+        <section id="experience" className="relative py-24 md:py-32 bg-panel border-y border-white/[0.06]">
+          <div className="max-w-[1400px] mx-auto px-5 sm:px-8 lg:px-12">
+            <FadeIn>
+              <SectionLabel index="04" title="Career" />
+              <h2 className="font-display font-bold text-[clamp(2rem,4.4vw,3.4rem)] leading-[1.05] mb-14">
+                Experience
+              </h2>
+            </FadeIn>
+            <div className="relative">
+              <div className="absolute left-[7px] top-2 bottom-2 w-px bg-white/10 hidden sm:block" />
+              <div className="flex flex-col gap-10">
+                {EXPERIENCE.map((e, i) => (
+                  <FadeIn key={e.role} delay={i * 0.08}>
+                    <div className="grid sm:grid-cols-12 gap-3 sm:gap-8 relative">
+                      <div className="hidden sm:flex sm:col-span-1 justify-start pt-1.5">
+                        <span className="w-[15px] h-[15px] rounded-full bg-ink border-2 border-blush relative z-10" />
+                      </div>
+                      <div className="sm:col-span-4">
+                        <p className="text-[12px] uppercase tracking-[0.18em] text-blush">{e.period}</p>
+                        <p className="text-mist text-sm mt-1">{e.company}</p>
+                      </div>
+                      <div className="sm:col-span-7 border border-white/[0.07] rounded-2xl p-6 bg-ink/30 hover:border-blush/30 transition-colors">
+                        <h3 className="font-display text-xl text-bone">{e.role}</h3>
+                        <p className="text-mist text-[14.5px] leading-relaxed mt-3">{e.detail}</p>
+                      </div>
+                    </div>
+                  </FadeIn>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function Services() {
+      return (
+        <section id="services" className="relative py-24 md:py-32">
+          <div className="max-w-[1400px] mx-auto px-5 sm:px-8 lg:px-12">
+            <FadeIn>
+              <SectionLabel index="05" title="What I do" />
+              <h2 className="font-display font-bold text-[clamp(2rem,4.4vw,3.4rem)] leading-[1.05] mb-14">
+                Services
+              </h2>
+            </FadeIn>
+            <div className="grid sm:grid-cols-2 gap-4 md:gap-5">
+              {SERVICES.map((s, i) => (
+                <FadeIn key={s.n} delay={i * 0.07}>
+                  <motion.div
+                    whileHover={{ y: -4 }}
+                    className="group h-full border border-white/[0.07] rounded-[24px] p-7 md:p-9 bg-panel/40 hover:border-blush/35 hover:bg-blush/[0.03] transition-colors"
+                  >
+                    <p className="font-display text-4xl md:text-5xl text-outline group-hover:text-blush/20 transition-colors">{s.n}</p>
+                    <h3 className="font-display text-xl md:text-2xl mt-5">{s.title}</h3>
+                    <p className="text-mist text-[14.5px] leading-relaxed mt-3">{s.text}</p>
+                  </motion.div>
+                </FadeIn>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function Contact() {
+      const [form, setForm] = useState({ name: "", email: "", message: "" });
+      const [sent, setSent] = useState(false);
+      const [err, setErr] = useState("");
+
+      const onSubmit = (e) => {
+        e.preventDefault();
+        if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+          setErr("Please complete every field.");
+          return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+          setErr("Enter a valid email address.");
+          return;
+        }
+        setErr("");
+        setSent(true);
+      };
+
+      return (
+        <section id="contact" className="relative py-24 md:py-32 bg-panel border-t border-white/[0.06]">
+          <div className="absolute left-1/2 -translate-x-1/2 top-0 w-[480px] h-[220px] bg-blush/10 blur-[100px] pointer-events-none" />
+          <div className="relative max-w-[1400px] mx-auto px-5 sm:px-8 lg:px-12">
+            <div className="grid lg:grid-cols-12 gap-12 lg:gap-16">
+              <div className="lg:col-span-5">
+                <FadeIn>
+                  <SectionLabel index="06" title="Contact" />
+                  <h2 className="font-display font-bold text-[clamp(2rem,4.4vw,3.4rem)] leading-[1.05]">
+                    Let’s build something exceptional.
+                  </h2>
+                  <p className="text-mist mt-5 leading-relaxed">
+                    Have a product, a rebuild, or a design that needs to live beautifully on the web? I’d like to hear about it.
+                  </p>
+                  <a href="mailto:hello@aaravsharma.dev" className="inline-block mt-8 font-display text-xl sm:text-2xl text-bone hover:text-blush transition-colors break-all">
+                    hello@aaravsharma.dev
+                  </a>
+                  <div className="flex flex-wrap gap-3 mt-8">
+                    {SOCIALS.map((s) => (
+                      <a key={s.label} href={s.href} target="_blank" rel="noreferrer" className="text-[12px] uppercase tracking-[0.16em] text-mist hover:text-blush transition-colors">
+                        {s.label}
+                      </a>
+                    ))}
+                  </div>
+                </FadeIn>
+              </div>
+              <div className="lg:col-span-7">
+                <FadeIn delay={0.1}>
+                  {sent ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="h-full min-h-[280px] border border-blush/30 rounded-[24px] p-10 flex flex-col justify-center bg-blush/[0.04]"
+                    >
+                      <p className="font-display text-2xl text-bone">Message received.</p>
+                      <p className="text-mist mt-3">Thank you — I’ll reply within one or two working days.</p>
+                    </motion.div>
+                  ) : (
+                    <form onSubmit={onSubmit} className="border border-white/[0.07] rounded-[24px] p-6 sm:p-8 bg-ink/40">
+                      <div className="grid sm:grid-cols-2 gap-5">
+                        <label className="block">
+                          <span className="text-[11px] uppercase tracking-[0.2em] text-mist">Name</span>
+                          <input
+                            value={form.name}
+                            onChange={(e) => setForm({ ...form, name: e.target.value })}
+                            className="mt-2 w-full bg-transparent border-b border-white/15 py-2.5 text-bone focus:border-blush transition-colors"
+                            placeholder="Your name"
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-[11px] uppercase tracking-[0.2em] text-mist">Email</span>
+                          <input
+                            type="email"
+                            value={form.email}
+                            onChange={(e) => setForm({ ...form, email: e.target.value })}
+                            className="mt-2 w-full bg-transparent border-b border-white/15 py-2.5 text-bone focus:border-blush transition-colors"
+                            placeholder="you@studio.com"
+                          />
+                        </label>
+                      </div>
+                      <label className="block mt-6">
+                        <span className="text-[11px] uppercase tracking-[0.2em] text-mist">Message</span>
+                        <textarea
+                          rows="5"
+                          value={form.message}
+                          onChange={(e) => setForm({ ...form, message: e.target.value })}
+                          className="mt-2 w-full bg-transparent border-b border-white/15 py-2.5 text-bone focus:border-blush transition-colors resize-none"
+                          placeholder="Tell me about the project…"
+                        />
+                      </label>
+                      {err && <p className="text-blush text-sm mt-4">{err}</p>}
+                      <motion.button
+                        type="submit"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="shine mt-8 px-7 py-3.5 rounded-full bg-blush text-ink text-[13px] font-semibold"
+                      >
+                        Send Message
+                      </motion.button>
+                    </form>
+                  )}
+                </FadeIn>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function Footer() {
+      return (
+        <footer className="border-t border-white/[0.06] py-8">
+          <div className="max-w-[1400px] mx-auto px-5 sm:px-8 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-[12px] text-mist">© {new Date().getFullYear()} Aarav Sharma. All rights reserved.</p>
+            <p className="text-[12px] text-mist">Designed & built with React, Tailwind & Framer Motion.</p>
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="text-[12px] uppercase tracking-[0.18em] text-bone hover:text-blush transition-colors"
+            >
+              Back to top
+            </button>
+          </div>
+        </footer>
+      );
+    }
+
+    function App() {
+      const [loading, setLoading] = useState(true);
+      useEffect(() => {
+        const t = setTimeout(() => setLoading(false), 1900);
+        return () => clearTimeout(t);
+      }, []);
+
+      return (
+        <>
+          <ScrollProgress />
+          <AnimatePresence>{loading && <Loader />}</AnimatePresence>
+          <Navbar />
+          <main>
+            <Hero ready={!loading} />
+            <About />
+            <Skills />
+            <Projects />
+            <Experience />
+            <Services />
+            <Contact />
+          </main>
+          <Footer />
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
